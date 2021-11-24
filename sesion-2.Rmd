@@ -1,0 +1,232 @@
+---
+title: "Introducción a R - Sesión 2"
+subtitle: "Un curso (bastante) rápido"  
+author: 
+  - "Octavio Medina"
+date: '`r Sys.Date()`'
+output:
+  xaringan::moon_reader:
+    self_contained: true
+    css: xaringan-themer.css
+    nature:
+      slideNumberFormat: "%current%"
+      highlightStyle: github
+      highlightLines: true
+      ratio: 16:9
+      countIncrementalSlides: true
+---
+
+```{r setup, include=FALSE}
+options(htmltools.dir.version = FALSE)
+knitr::opts_chunk$set(
+  fig.width=9, fig.height=3.5, fig.retina=3,
+  out.width = "100%",
+  cache = FALSE,
+  echo = TRUE,
+  message = FALSE, 
+  warning = FALSE,
+  fig.show = TRUE,
+  hiline = TRUE
+)
+
+library(tidyverse)
+library(gapminder)
+library(here)
+library(hrbrthemes)
+library(wesanderson)
+library(kableExtra)
+library(viridis)
+library(palmerpenguins)
+library(gapminder)
+
+library(xaringanthemer)
+
+
+# This is the recommended set up for flipbooks
+# you might think about setting cache to TRUE as you gain practice --- building flipbooks from scratch can be time consuming
+knitr::opts_chunk$set(#fig.width = 6, 
+                      comment = "")
+library(flipbookr)
+
+
+```
+
+```{r xaringan-themer, include=FALSE, warning=FALSE}
+
+style_mono_accent(base_color = "#00A1BA",
+                  header_font_google = google_font("Josefin Sans"),
+                  #text_font_google   = google_font("Montserrat", "300", "300i"),
+                  code_font_google   = google_font("Fira Mono"))
+
+
+```
+
+---
+class: inverse middle center
+
+# Plotting
+---
+
+## The grammar of graphics
+
+.pull-left[
+
+- **Principio**: Siempre, siempre, SIEMPRE vale la pena visualizar nuestros datos. 
+
+- The most popular (and coolest) plotting library in R is `ggplot2`. It follows principles based on the **grammar of graphics**
+
+- What you should remember about this is that a plot is based on different layers that can be combined to create pretty much everything.
+
+- Let's look at a basic example.
+
+]
+
+.pull-right[
+```{r, echo=FALSE, fig.cap="Una gráfica es como una cebolla."}
+knitr::include_graphics("gog.png")
+```
+]
+---
+
+## Las capas de una gráfica
+
+
+---
+
+## Plotting with `ggplot2`
+
+.pull-left[
+
+### Mappings and geoms
+
+- The two crucial starting points are the `aesthetic mappings` and the `geoms`. These tell your graph what variables are mapped to what, and what geometry we're going to use to represent them.
+- For two variables, a scatterplot is common:
+
+```{r, eval = FALSE}
+
+gapminder %>%
+  filter(year == 1982) %>%
+  ggplot(aes(x = gdpPercap, #<< 
+             y = lifeExp)) + #<< 
+  geom_point() #<< 
+
+```
+]
+
+.pull-right[
+```{r, echo=FALSE}
+
+gapminder %>%
+  filter(year == 1982) %>%
+  ggplot(aes(x = gdpPercap, y = lifeExp)) +
+  geom_point()
+
+```
+]
+
+---
+
+## Plotting with `ggplot2`
+
+.pull-left[
+
+### Adding a geom
+
+- But just playing around with things, we can get very different results.
+- We can add a geometry that shows a smooth line (or a linear model). 
+
+```{r, eval = FALSE}
+
+gapminder %>%
+  filter(year == 1982) %>%
+  ggplot(aes(x = gdpPercap, 
+             y = lifeExp)) +
+  geom_point() +
+  geom_smooth() #<< 
+
+```
+]
+
+.pull-right[
+```{r, echo=FALSE}
+
+gapminder %>%
+  filter(year == 1982) %>%
+  ggplot(aes(x = gdpPercap, y = lifeExp)) +
+  geom_point() +
+  geom_smooth()
+
+```
+]
+
+---
+
+## Plotting with `ggplot2`
+
+.pull-left[
+
+### Adding a geom
+
+- We can also add an aesthetic to encode continent as color.
+
+```{r, eval = FALSE}
+
+gapminder %>%
+  filter(year == 1982) %>%
+  ggplot(aes(x = gdpPercap, 
+             y = lifeExp, 
+             color = continent)) + #<< 
+  geom_point()
+
+```
+]
+
+.pull-right[
+```{r, echo=FALSE}
+
+gapminder %>%
+  filter(year == 1982) %>%
+  ggplot(aes(x = gdpPercap, 
+             y = lifeExp, 
+             color = continent)) +
+  geom_point()
+
+```
+]
+
+
+---
+
+class: inverse center middle
+
+## Anatomy of a ggplot
+
+---
+
+`r chunk_reveal("my_gap")`
+
+```{r my_gap, include = FALSE}
+
+gapminder %>%
+  filter(year == 1982) %>%
+  ggplot() +
+  aes(x = gdpPercap) +
+  aes(y = lifeExp) +
+  geom_point() +
+  aes(color = continent) +
+  aes(size = pop) +
+  theme_ipsum_tw() +
+  labs(title = "Income and life expectancy in 1982",
+       x = "GDP per capita",
+       y = "Life expectancy",
+       color = "Continent",
+       size = "Population") 
+
+
+```
+
+---
+
+class: inverse center middle
+
+# Thank you!

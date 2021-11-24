@@ -1,0 +1,781 @@
+---
+title: "Introducción a R - Sesión 1"
+subtitle: "Un curso (bastante) rápido"  
+author: 
+  - "Octavio Medina"
+date: '`r Sys.Date()`'
+output:
+  xaringan::moon_reader:
+    self_contained: true
+    css: xaringan-themer.css
+    nature:
+      slideNumberFormat: "%current%"
+      highlightStyle: github
+      highlightLines: true
+      ratio: 16:9
+      countIncrementalSlides: true
+---
+
+```{r setup, include=FALSE}
+options(htmltools.dir.version = FALSE)
+knitr::opts_chunk$set(
+  #fig.width=9, fig.height=3.5, fig.retina=3,
+  #out.width = "100%",
+  cache = FALSE,
+  echo = TRUE,
+  message = FALSE, 
+  warning = FALSE,
+  fig.show = TRUE,
+  hiline = TRUE
+)
+library(here)
+library(tidyverse)
+library(hrbrthemes)
+library(wesanderson)
+library(kableExtra)
+library(viridis)
+library(palmerpenguins)
+library(gapminder)
+library(ggiraph)
+library(tools42)
+
+
+```
+
+```{r xaringan-themer, include=FALSE, warning=FALSE}
+library(xaringanthemer)
+
+style_mono_accent(base_color = "#00A1BA",
+                  header_font_google = google_font("Josefin Sans"),
+                  #text_font_google   = google_font("Montserrat", "300", "300i"),
+                  code_font_google   = google_font("Fira Mono"))
+
+
+
+
+```
+
+
+```{r xaringan-tile-view, echo=FALSE}
+
+xaringanExtra::use_xaringan_extra(c("tile_view", "panelset"))
+
+```
+
+---
+
+class: center middle
+
+# Lo que cubriremos hoy
+
+---
+
+## Sesión 1
+
+- Qué es **R** y en qué se parece a Stata y otras opciones?
+
+- Puntos **básicos**: objetos y `dataframes`!
+
+- Leer y **modificar** datos
+
+- Correr regresiones y presentar resultados
+
+## Sesión 2
+
+- Anatomía de una gráfica: el *grammar of graphics*
+
+- Visualizar datos con `ggplot2`
+
+- Visualizar modelos con `ggplot2`
+
+---
+class: inverse center middle
+
+# Sesión 1: 10-11.30am
+
+---
+
+# Qué es R?
+
+- R fue creado como lenguaje de programación para estadística y gráficos, pero se ha convertido en mucho más que eso.
+
+- En principio es similar a Stata y otros programas de computación estadística como SPSS o SAS. PERO hay un número de cosas que lo diferencian.
+
+--
+
+.panelset[
+.panel[.panel-name[Cosas parecidas]
+
+### Cosas parecidas
+
+- Abres bases de datos
+- Creas variables, las modificas
+- Analizas datos
+- Reportas resultados
+
+]
+.panel[.panel-name[Cosas diferentes]
+
+### Cosas diferentes
+
+- Muchos tipos de objetos (y múltiples bases!)
+- Es un lenguaje de programación
+- Flexibilidad (y diversidad)
+- Sinergias e interés compuesto 
+
+]
+]
+
+---
+
+## Ejemplo: Profundidad y longitud del pico en pingüinos
+
+```{r, echo = FALSE}
+
+
+
+p <- penguins %>%
+  mutate(id = row_number(),
+         tooltip = paste("Soy un pingüino", species, "y vivo en la isla", island)) %>%
+  ggplot(aes(x = bill_length_mm,
+             y = bill_depth_mm,
+             color = species)) +
+  geom_point_interactive(aes(tooltip = tooltip, data_id = id ), alpha = 0.5, size = 2.5) +
+  geom_smooth(method = 'lm') +
+  theme_ipsum_tw() +
+  scale_color_manual(values = wes_palette("Darjeeling1")) +
+  facet_wrap(~island)
+  
+
+girafe(code = print(p), width_svg = 12, height_svg = 5)
+
+```
+
+
+---
+class: center middle
+
+## Y qué pasa con RStudio?
+
+Rstudio es el IDE (entorno de desarrollo integrado) más utilizado para programar con R.
+
+Enlace para descargar: https://www.rstudio.com/products/rstudio/download/
+---
+
+## Antes de empezar
+
+`R` utiliza muchos paquetes. Los paquetes **expanden el universo de cosas** que se pueden hacer con `R`, a menudo de manera espectacular.
+
+- Para simplificar las cosas, solo instalaremos cuatro paquetes: la familia de paquetes `tidyverse`,`gapminder` (que usaremos para explorar la base de datos del mismo nombre), `broom` y `modelsummary`.
+
+- En las próximas sesiones también utilizaremos la ECV, para así usar datos similares a los que habitualmente utilizamos.
+
+- Para instalarlos, simplemente tenemos que ejecutar estos dos comandos en la consola:
+
+```{r, eval= FALSE}
+
+install.packages("tidyverse")
+install.packages("gapminder")
+install.packages("broom")
+install.packages("modelsummary")
+
+```
+
+---
+
+## Antes de empezar
+
+- Solo necesitamos instalar los paquetes una vez en cada ordenador. Una vez hecho, podemos cargarlos cuando lo necesitemos (generalmente al principio de la sesión). 
+
+```{r, eval = FALSE}
+
+library(tidyverse)
+library(gapminder)
+
+```
+
+---
+
+# Lo primero: el operador de asignación
+
+- R está **lleno de objetos**
+
+- Para guardar un objeto, usamos el **operador de asignación** (`<-`)
+
+- También podemos utilizar el `=`, pero se usa menos
+
+```{r}
+
+mi_variable <- 2021
+
+mi_nombre <- "KSNET"
+
+```
+
+- Para imprimir un objeto, vale con ponerlo en la consola como si fuera un comando:
+
+```{r}
+
+mi_nombre
+
+```
+
+---
+
+# Tipos de objetos
+
+La estructura de datos más básica en R es un vector.
+
+- Los vectores tienen **una dimensión** (son como una línea)
+
+- Los vectores pueden ser **numéricos**, **caracteres**, **lógicos** ...
+
+- Pero ojo, todos deben compartir el mismo tipo!
+
+Aquí hay unos ejemplos:
+
+```{r}
+
+# Podemos crear un vector usando el operador de asignación (<-)
+my_letters <- c("a", "b", "c")
+
+my_numbers <- c(1,2,3)
+
+# Ahora veamos qué pasa si mezclamos tipos
+all_mixed <- c("a", 2, "b", 3)
+
+```
+
+---
+
+## Varios vectores = una base de datos
+
+- En R las bases de datos se llaman `dataframes`
+
+- ¿Y qué es una base de datos? Es un montón de **vectores** junntos, unidos verticalmente.
+
+```{r}
+
+oveja_nombre <- c("Molly", "Polly", "Dolly")
+oveja_peso <- c(120, 90, 85)
+oveja_edad <- c(3,4,2)
+
+mis_ovejas <- data.frame(oveja_nombre, oveja_peso, oveja_edad)
+
+```
+
+Vamos a imprimirlo para verlo:
+
+```{r}
+
+mis_ovejas
+
+```
+
+---
+
+## Importación y manipulación de datos
+
+- No siempre creamos `dataframes` de esta manera, pero es útil como **modelo mental**.
+
+- Por lo general, hacemos lo mismo que en Stata, y **abrimos o leemos** los datos.
+
+- Para hacer eso, usaremos la familia de funciones `read_ *` disponibles como parte del `tidyverse`. Hay un ejemplo en vuestro script, para verlo después del training.
+
+- Para esta sesión, usaremos la base de datos `gapminder`, que podemos abrir usando `data (gapminder)`, ya que ya viene instalada con el paquete del mismo nombre.
+
+```{r}
+
+data(gapminder)
+
+```
+
+Lo podéis ver?
+
+
+---
+## Hablemos de gramática y verbos
+
+Para manipular datos utilizaremos los verbos del paquete `dplyr`, parte de la familia del `tidyverse`.
+
+Hay varios verbos disponibles para la manipulación de datos. Hoy le echaremos un vistazo a estos:
+
+- `select()`
+- `filter()`
+- `mutate()`
+- `arrange()`
+- `summarize()`
+- `group_by()`
+
+Con estas 6 herramientas, deberíais poder hacer aproximadamente el 80% de las tareas de manipulación de datos.
+
+---
+
+class: inverse center middle
+
+### Para el otro 20%: Google y Stackoverflow son tus mejores amigos.
+
+![dog](no_idea.gif)
+
+---
+
+## Echando un vistazo a los datos
+
+Echemos un vistazo a nuestro conjunto de datos. Puedes mirar las primeras 5 observaciones usando `head()`:
+
+```{r}
+
+head(gapminder)
+
+```
+
+---
+
+## Echando un vistazo a los datos
+
+También se puede usar `summary()` para obtener una descripción general de la base de datos. Esto es similar al comando `summarize` de Stata:
+
+```{r}
+
+summary(gapminder)
+
+```
+
+---
+
+## Echando un vistazo a los datos
+
+Finalmente, podemos utilizar `table()` como sustituto de `tab` en Stata. Esto es particularmente útil para variables categóricas. Por ejemplo, el # de observaciones por continente.
+
+Ojo porque tendremos que usar el símbolo `$` para especificar qué variable queremos tabular (porque en R se pueden tener varios dataframes de forma simultánea).
+
+```{r}
+
+table(gapminder$continent)
+
+```
+
+---
+
+## Seleccionar variables y filtrar observaciones
+
+Usamos `select` para seleccionar **variables**, y` filter` para filtrar **observaciones**.
+
+Una ventaja de R es que no tenemos que renunciar a nuestro dataframe original! Simplemente podemos crear un **objeto nuevo** o **actualizar uno anterior.**
+
+Ok, vamos a conservar solo las variables `country`,` year` y `lifeExp`.
+
+```{r}
+
+df_redux <- select(gapminder, country, year, lifeExp)
+
+head(df_redux)
+
+```
+
+
+---
+
+## Seleccionar variables y filtrar observaciones
+
+Ahora intentemos usar `filter ()`. Se puede filtrar por cualquier condición! Aquí filtraremos por año y país.
+
+```{r}
+
+df_filtered <- filter(gapminder, year == 1957, country == "Belgium")
+
+df_filtered
+```
+---
+
+## Hacer todo a la vez es mejor
+
+.pull-left[
+
+- El `pipe` (o tubería) es un invento estupendo: `%>%`
+
+- Conceptualmente, es como decir "... y luego ..."
+
+- El `pipe` nos permite encadenar operaciones y nos facilitará la vida
+
+- Ahora vamos a filtrar por continente y año, y manteniendo tres variables:
+
+```{r}
+
+gapminder %>%
+  filter(continent == "Oceania", year == 2007) %>%
+  select(continent, country, lifeExp)
+
+```
+
+]
+
+.pull-right[
+```{r, echo=FALSE, out.width="70%", fig.cap="This is not a pipe.", fig.align='center'}
+knitr::include_graphics("pipe.jpeg")
+```
+]
+
+
+
+
+---
+
+## Referencia: `select()`
+
+Seleccionar por nombre de columna:
+
+```{r, eval = FALSE}
+gapminder %>%
+  select(country)
+```
+
+Seleccionar por posición de columna:
+
+```{r, eval = FALSE}
+gapminder %>%
+  select(1:2)
+```
+
+Todas las columnas menos la primera:
+
+```{r, eval = FALSE}
+gapminder %>%
+  select(-1)
+```
+
+---
+
+## Referencia: `filter()`
+
+Se pueden combinar varias expresiones con una coma o `&`:
+
+```{r, eval = FALSE}
+gapminder %>%
+  filter(continent == "Europe" & year == 2007)
+```
+
+Podemos utilizar el operador `|` cuando queramos un `o` en vez de `y`:
+
+```{r, eval = FALSE}
+gapminder %>%
+  filter(continent == "Europe" | continent == "Americas")
+```
+
+Un signo de exclamación niega una condición. Para mantener todas las **observaciones que no faltan (NA)**, podemos poner:
+
+```{r, eval = FALSE}
+gapminder %>%
+  filter(!is.na(continent))
+```
+
+---
+
+
+## Mutar para crear (o cambiar) variables
+
+- Podemos usar el verbo `mutate ()` para crear o modificar variables usando todas las operaciones comunes (por ejemplo, sumar, restar, multiplicar, dividir...).
+
+- Si os fijáis, en nuestros datos no hay variable de PIB! Creámosla multiplicando el PIB per cápita por la población y guardemos el resultado como un nuevo dataframe.
+
+```{r}
+
+df_gdp <- gapminder %>%
+  mutate(gdp = pop * gdpPercap)
+
+head(df_gdp)
+
+```
+---
+
+## Mutar para crear (o cambiar) variables
+
+Ok, eso es bastante grande. También podríamos dividirlo por 1,000,000 para tenerlo en millones de dólares, o tomar el logaritmo!
+
+```{r}
+
+df_gdp <- df_gdp %>%
+  mutate(gdp_million = gdp / 1000000,
+         gdp_log = log(gdp))
+
+head(df_gdp)
+```
+---
+
+## Mutar para crear (o cambiar) variables
+
+Y si queremos crear una variable que depende del valor de otras? Por ejemplo, creemos una dummy para países africanos y otra para europeos:
+
+```{r}
+
+gapminder %>%
+  mutate(africa = if_else(continent == "Africa", 1, 0),
+         europe = if_else(continent == "Europe", 1, 0))
+
+```
+
+---
+
+## `arrange()` para ordenar nuestros datos
+
+- Veamos cuál era el país con menor esperanza de vida en 1957:
+
+```{r}
+
+gapminder %>%
+  filter(year == 1957) %>%
+  arrange(lifeExp) %>%
+  head(3) # You can use head to restrict the output to any number of observations
+
+```
+
+---
+
+## `arrange()` para ordenar nuestros datos
+
+Y el de mayor?
+
+```{r}
+
+gapminder %>%
+  filter(year == 1957) %>%
+  arrange(desc(lifeExp)) %>%
+  head(3)
+
+```
+
+---
+
+## Ejercicio
+
+- Vamos a filtrar y ordenar países a la vez.
+
+- Intentad ordenar los países de **más de 100 millones de habitantes** por **esperanza de vida (creciente) en 2002**:
+
+- Tenéis ** 1 minuto **.
+
+---
+
+## Ejercicio
+
+- Vamos a filtrar y ordenar países a la vez.
+
+- Intentad ordenar los países de **más de 100 millones de habitantes** por **esperanza de vida (creciente) en 2002**:
+
+```{r}
+
+gapminder %>%
+  filter(year == 2002, pop > 100000000) %>%
+  arrange(lifeExp) 
+
+```
+
+---
+
+## `summarize()` para resumir datos
+
+- Muy a menudo, nos interesa calcular medias, medianas, desviaciones estándar, o contar observaciones.
+
+- Podemos calcular cualquier tipo de resumen  con `summarize()` (o `summarise()`).
+
+- Por ejemplo, imaginad que estamos interesados en la media, la mediana y la desviación estándar de la esperanza de vida en 2007:
+
+```{r}
+
+gapminder %>%
+  filter(year == 2007) %>%
+  summarize(exp_mean = mean(lifeExp),
+            exp_median = median(lifeExp),
+            exp_sd = sd(lifeExp))
+
+```
+
+
+---
+
+## Grupos de *cosas*
+
+- Pero más a menudo, lo que queremos es resúmenes entre grupos! Esto surge todo el tiempo en nuestro trabajo.
+
+```{r}
+gapminder %>%
+  group_by(continent) %>%
+  summarize(exp_mean = mean(lifeExp),
+            gdp_mean = mean(gdpPercap))
+
+```
+
+- Tened en cuenta que `group_by()` no produce ningún resultado, solo agrupa las variables antes de cualquier operación que venga después (normalmente, `summarize()`
+
+---
+
+## Ejercicio
+
+- Podéis encontrar cuál fue la **media** y la **mediana del PIB per cápita** (y el  **número de observaciones!**) para **cada uno de los continentes en 1982**?
+
+- Tenéis ** 2 minutos **.
+
+---
+
+## Ejercicio
+
+```{r}
+
+gapminder %>%
+  filter(year == 1982) %>% # filtrar para que solo quede 1982
+  group_by(continent) %>% # agrupar por continente
+  summarize(mean = mean(gdpPercap), # usar summarize
+            median = median(gdpPercap),
+            count = n())
+
+```
+
+---
+
+## Referencia: Otras funciones útiles
+
+- `distinct()` para seleccionar filas únicas de un dataframe
+
+- `top_n()` para filtrar las n primeras observaciones (se puede usar en combinación
+con `arrange()`)
+
+- `if_else()` para cuando queramos hacer algo de forma condicional
+
+- `rename()` para cambiar el nombre de las variables en su marco de datos
+
+- Todas las funciones: https://dplyr.tidyverse.org/reference/index.html
+
+---
+
+## Regresiones y otras historias
+
+- R fue diseñado con la estadística en mente, por lo que hay un montón de funciones integradas para esta clase de tareas.
+
+- Intentemos correr una regresión. Para eso nos vamos a quedar con los datos de 1982, y vamos a crear un par de variables.
+
+
+
+```{r}
+
+df_regression <- gapminder %>%
+  filter(year == 1982) %>%
+  mutate(africa = if_else(continent == "Africa", 1, 0),
+         europe = if_else(continent == "Europe", 1, 0),
+         americas = if_else(continent == "Americas", 1, 0))
+
+```  
+
+---
+
+## Regresiones y otras historias
+
+- Solemos utilizar `lm` para ejecutar un modelo lineal y` glm` para ejecutar un logit (que significa modelo lineal generalizado). Estos generan un objeto que luego podemos guardar y manipular.
+
+```{r}
+
+my_ols <- lm(lifeExp ~ log(gdpPercap), data = df_regression)
+
+```
+
+---
+
+- El resultado es similar al que se vería en Stata. Se puede mostrar en una tabla, imprimirlo, exportarlo y usarlo para gráficos de coeficientes.
+
+```{r}
+
+summary(my_ols)
+
+```
+
+
+
+---
+
+## Visualizar una regresión (en un dataframe)
+
+- Con `broom`
+
+```{r}
+library(broom)
+
+tidy(my_ols)
+
+```
+
+---
+
+## Visualizar una regresión (en una tabla)
+
+- Con el paquete `modelsummary` podemos creat tablas de regresión fácilmente.
+
+```{r}
+library(modelsummary)
+
+modelsummary(my_ols,
+             estimate = "{estimate}{stars}",
+             gof_omit = ".*",
+             output = "gt")
+
+```
+
+
+---
+
+## Visualizar dos (o más) regresiones
+
+
+```{r}
+my_ols2 <- lm(lifeExp ~ log(gdpPercap) + africa + europe + americas, data = df_regression)
+
+my_ols3 <- lm(lifeExp ~ log(gdpPercap) + africa + europe + americas + log(pop), data = df_regression)
+
+all_models <- list(Simple = my_ols,
+                  Continente = my_ols2,
+                  Población = my_ols3)
+
+```
+
+
+---
+
+## Visualizar dos (o más) regresiones
+
+.pull-left[
+
+```{r, eval = FALSE}
+
+modelsummary(all_models,
+             estimate = "{estimate}{stars}", 
+             output = "gt",
+             gof_omit = ".*", )
+
+```
+
+]
+
+.pull-right[
+
+```{r, echo = FALSE}
+
+modelsummary(all_models,
+             estimate = "{estimate}{stars}", output = "gt",
+             gof_omit = ".*", )
+
+```
+
+]
+
+---
+
+class: inverse center middle
+
+# Preguntas?
+
+
+---
+
+class: center middle
+
+# Gracias!
+
+---
