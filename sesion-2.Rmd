@@ -227,6 +227,17 @@ gapminder %>%
 
 ---
 
+# Visualizar los coeficientes
+
+```{r}
+
+modelplot(all_models, coef_omit = 'Interc')
+
+```
+
+
+---
+
 class: inverse center middle
 
 # Thank you!
