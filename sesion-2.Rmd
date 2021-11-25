@@ -72,6 +72,26 @@ class: inverse middle center
 
 # Visualización con ggplot2
 ---
+class: inverse middle center
+
+Antes de empezar:
+
+```{r, eval = FALSE}
+install.packages("tidyverse")
+install.packages("hrbrthemes")
+install.packages("viridis")
+```
+
+Y luego:
+
+```{r, eval = FALSE}
+library("tidyverse")
+library("hrbrthemes")
+library("viridis")
+```
+
+
+---
 
 # Por qué visualizar?
 
@@ -513,6 +533,49 @@ ggplot(data = gap_82,
 ]
 ---
 
+# Escalas de colores
+
+.pull-left[
+- Las escalas de colores siguen la lógica de los mappinngs.
+
+- Para añadir una escala discreta para `color`, podemos añadir `scale_color_*`. Si es para fill, entonces `scale_fill_*`.
+
+- Las escalas `viridis`, del paquete del mismo nombre, suelen ser una buena opción. Pero hay muchas!
+
+```{r, eval = FALSE}
+
+ggplot(data = gap_82,
+       mapping =  aes(x = gdpPercap,
+                      y = lifeExp,
+                      color = continent)) +  
+  geom_point() +
+  theme_ipsum() + 
+  facet_wrap(~continent) + #<<
+  scale_color_viridis_d() #<<
+
+
+```
+
+]
+
+.pull-right[
+```{r, echo = FALSE, fig.height = 6, fig.width=5, out.width="80%"}
+
+ggplot(data = gap_82,
+       mapping =  aes(x = gdpPercap,
+                      y = lifeExp,
+                      color = continent)) +  
+  geom_point() +
+  theme_ipsum() + 
+  facet_wrap(~continent, nrow = 3) + #<<
+  scale_color_viridis_d() +
+  guides(color = FALSE)
+
+```
+]
+
+---
+
 class: inverse center middle
 
 ## Anatomía de un ggplot
@@ -537,7 +600,8 @@ gapminder %>%
        x = "PIB per cápita",
        y = "Esperanza de vida",
        color = "Continente",
-       size = "Población") 
+       size = "Población") +
+  scale_color_viridis_d()
 
 
 ```
