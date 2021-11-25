@@ -19,7 +19,8 @@ output:
 ```{r setup, include=FALSE}
 options(htmltools.dir.version = FALSE)
 knitr::opts_chunk$set(
-  fig.width=9, fig.height=3.5, fig.retina=3,
+  #fig.width=6, 
+  fig.retina=3,
   out.width = "100%",
   cache = FALSE,
   echo = TRUE,
@@ -32,12 +33,12 @@ knitr::opts_chunk$set(
 library(tidyverse)
 library(gapminder)
 library(here)
+library(gt)
 library(hrbrthemes)
 library(wesanderson)
-library(kableExtra)
 library(viridis)
-library(palmerpenguins)
 library(gapminder)
+library(modelsummary)
 
 library(xaringanthemer)
 
@@ -51,6 +52,12 @@ library(flipbookr)
 
 ```
 
+```{r xaringan-tile-view, echo=FALSE}
+
+xaringanExtra::use_xaringan_extra(c("tile_view", "panelset"))
+
+```
+
 ```{r xaringan-themer, include=FALSE, warning=FALSE}
 
 style_mono_accent(base_color = "#00A1BA",
@@ -61,23 +68,124 @@ style_mono_accent(base_color = "#00A1BA",
 
 ```
 
----
 class: inverse middle center
 
-# Plotting
+# Visualización con ggplot2
 ---
 
-## The grammar of graphics
+# Por qué visualizar?
+
+
+Por qué molestarse? **Dadme razones.**
+
+--
+
+- Procesamiento cognitivo
+
+- Reconocimiento de patrones
+
+- Detección de problemas
+
+- Comunicación de conclusiones
+
+
+---
+
+# Por qué visualizar?
 
 .pull-left[
 
-- **Principio**: Siempre, siempre, SIEMPRE vale la pena visualizar nuestros datos. 
+.panelset[
+.panel[.panel-name[Ejemplo 1]
 
-- The most popular (and coolest) plotting library in R is `ggplot2`. It follows principles based on the **grammar of graphics**
+]
 
-- What you should remember about this is that a plot is based on different layers that can be combined to create pretty much everything.
+.panel[.panel-name[Gorila Real]
 
-- Let's look at a basic example.
+```{r, echo = FALSE}
+knitr::include_graphics("sesion-2/gorila.png")
+
+
+```
+
+]
+.panel[.panel-name[Gorila Virtual]
+
+
+```{r, echo = FALSE, fig.height= 4, out.width = "80%"}
+knitr::include_graphics("sesion-2/gorila-virtual.png")
+
+```
+
+]
+]
+]
+
+.pull-right[
+.panelset[
+.panel[.panel-name[Ejemplo 2]
+
+]
+.panel[.panel-name[Tabla]
+
+```{r, echo = FALSE}
+
+t_estados <- tibble::tribble(
+          ~estado, ~esperanza_vida, ~anyo,
+      "Louisiana",            71.6, 1980L,
+  "Massachusetts",            74.8, 1980L,
+             "DC",            68.9, 1980L,
+      "Louisiana",            74.1, 2000L,
+  "Massachusetts",            78.2, 2000L,
+             "DC",            72.1, 2000L,
+      "Louisiana",            76.1, 2018L,
+  "Massachusetts",            80.5, 2018L,
+             "DC",            78.6, 2018L
+  )
+
+gt(t_estados)
+
+
+```
+
+]
+.panel[.panel-name[Gráfica]
+
+
+```{r, echo = FALSE, fig.height= 4, fig.width= 5, out.width = "90%"}
+
+t_estados %>%
+  ggplot(aes(x = anyo,
+             y = esperanza_vida,
+             color = estado,
+             group = estado)) +
+  geom_line() +
+  geom_point() +
+  theme_ipsum_pub() +
+  labs("Esperanza de Vida por Estado") +
+  scale_color_manual(values = wes_palette("Darjeeling1")) +
+  theme(legend.position = "bottom")
+
+```
+
+]
+]
+]
+
+
+
+---
+
+## La gramática de los gráficos
+
+.pull-left[
+
+- La librería de gráficos más popular (y más mejor!) de R es `ggplot2`. Sigue principios basados en la **gramática de los gráficos**.
+
+- La gramática de los gráficos es un principio que nos permite definir y organizar un plot según sus diferentes capas. 
+
+- Esto permite **combinar piezas** para crear prácticamente todo tipo de gráficas.
+
 
 ]
 
@@ -88,33 +196,146 @@ knitr::include_graphics("gog.png")
 ]
 ---
 
-## Las capas de una gráfica
+class: center middle
+
+## Las capas de una gráfica: lo imprescindible
+
+```{r, echo=FALSE}
+knitr::include_graphics("sesion-2/gog-first.png")
+```
 
 
 ---
 
-## Plotting with `ggplot2`
+## Las capas de una gráfica: lo imprescindible
+
+- **Data**: vuestra base de datos o dataframe, siempre que sea posible en formato `tidy`.
+
+- **Aesthetic mapping**: Los `aesthetic mappings` describen cómo las variables de los datos se asignan (mapean) a distintas propiedades visuales (la estética).
+
+- **Geometries**: la geometría que queremos usar para mostrar nuestros datos.
+
+---
+
+## Ejemplo 
+
+- **Data:** `gapminder`
+- **Aesthetic mapping:** `mean_life_exp` al eje x, `continent` al eje y 
+- **Geometries:** columna, o `geom_col()`
+
+```{r, echo = FALSE, fig.width= 9, fig.height= 3.5}
+
+gapminder %>%
+  filter(year == 2002) %>%
+  group_by(continent) %>%
+  summarize(mean_life_exp = mean(lifeExp)) %>%
+  ggplot(aes(y = continent,
+             x = mean_life_exp)) +
+  geom_col() +
+  theme_minimal()
+
+
+```
+---
+
+## Ejemplo 
+
+- **Data:** ?
+- **Aesthetic mapping:** ?
+- **Geometries:** ?
+
+```{r, echo = FALSE, fig.width= 9, fig.height= 3.5}
+
+gapminder %>%
+  filter(year == 2002) %>%
+  group_by(continent) %>%
+  summarize(mean_life_exp = mean(lifeExp)) %>%
+  ggplot(aes(y = continent,
+             x = mean_life_exp,
+             color = continent)
+             ) +
+  geom_point(size = 3) +
+  theme_minimal() +
+  guides(color = FALSE)
+
+
+```
+
+
+---
+
+## Ejemplo 
+
+- **Data:** ?
+- **Aesthetic mapping:** ?
+- **Geometries:** ?
+
+```{r, echo = FALSE, fig.width= 9, fig.height= 3.5}
+
+gapminder %>%
+  filter(year == 2002) %>%
+  ggplot(aes(y = lifeExp,
+             x = gdpPercap,
+             color = continent,
+             size = pop)
+             ) +
+  geom_point() +
+  theme_minimal() 
+
+
+```
+
+---
 
 .pull-left[
 
-### Mappings and geoms
+## Los mappings
 
-- The two crucial starting points are the `aesthetic mappings` and the `geoms`. These tell your graph what variables are mapped to what, and what geometry we're going to use to represent them.
-- For two variables, a scatterplot is common:
+- `x`
+- `y`
+- `color`
+- `fill`
+- `alpha`
+- `size`
+
+]
+
+.pull-left[
+
+## Los geoms
+
+- `geom_point()`
+- `geom_histogram()`
+- `geom_line()`
+- `geom_bar()`
+- `geom_smooth()`
+
+]
+
+---
+
+## Scatterplot con `geom_point()`
+
+.pull-left[
+
+- Un gráfico humilde pero resultón
 
 ```{r, eval = FALSE}
+gap_82 <- gapminder %>% 
+  filter(year == 1982)
 
-gapminder %>%
-  filter(year == 1982) %>%
-  ggplot(aes(x = gdpPercap, #<< 
-             y = lifeExp)) + #<< 
+ggplot(data = gap_82,
+       mapping =  aes(x = gdpPercap, #<< 
+                        y = lifeExp)) + #<< 
   geom_point() #<< 
 
 ```
 ]
 
 .pull-right[
-```{r, echo=FALSE}
+```{r, echo=FALSE, fig.height = 5, fig.width=6}
+gap_82 <- gapminder %>% 
+  filter(year == 1982)
 
 gapminder %>%
   filter(year == 1982) %>%
@@ -126,80 +347,175 @@ gapminder %>%
 
 ---
 
-## Plotting with `ggplot2`
+## Scatterplot con `geom_point()`
 
 .pull-left[
 
-### Adding a geom
-
-- But just playing around with things, we can get very different results.
-- We can add a geometry that shows a smooth line (or a linear model). 
+- Se pueden acumular geoms! Recordad, todo es una cebolla.
 
 ```{r, eval = FALSE}
+gap_82 <- gapminder %>% 
+  filter(year == 1982)
 
-gapminder %>%
-  filter(year == 1982) %>%
-  ggplot(aes(x = gdpPercap, 
-             y = lifeExp)) +
-  geom_point() +
-  geom_smooth() #<< 
+ggplot(data = gap_82,
+       mapping =  aes(x = gdpPercap,  
+                        y = lifeExp)) + 
+  geom_point() + #<<
+  geom_smooth() #<<
 
 ```
 ]
 
 .pull-right[
-```{r, echo=FALSE}
+```{r, echo=FALSE, fig.height = 5, fig.width=6}
+gap_82 <- gapminder %>% 
+  filter(year == 1982)
 
 gapminder %>%
   filter(year == 1982) %>%
   ggplot(aes(x = gdpPercap, y = lifeExp)) +
   geom_point() +
-  geom_smooth()
+  geom_smooth() #<<
 
 ```
 ]
 
 ---
 
-## Plotting with `ggplot2`
+## Barras con `geom_bar()` y `geom_col()`
 
 .pull-left[
 
-### Adding a geom
+- Las barras son un poco especiales, porque se pueden usar para **contar observaciones** o para **mostrar otras variables.**
 
-- We can also add an aesthetic to encode continent as color.
+- Para lo primero, usaremos `geom_bar()` (ojo con los mappings!), para lo demás `geom_col()` suele ser más cómodo.
 
 ```{r, eval = FALSE}
 
-gapminder %>%
-  filter(year == 1982) %>%
-  ggplot(aes(x = gdpPercap, 
-             y = lifeExp, 
-             color = continent)) + #<< 
-  geom_point()
+ggplot(data = gap_82,
+       mapping =  aes(x = gdpPercap,  
+                        y = lifeExp)) + 
+  geom_bar() #<<
 
 ```
 ]
 
 .pull-right[
-```{r, echo=FALSE}
+```{r, echo=FALSE, fig.height = 5, fig.width=6}
 
 gapminder %>%
   filter(year == 1982) %>%
-  ggplot(aes(x = gdpPercap, 
-             y = lifeExp, 
-             color = continent)) +
-  geom_point()
+  ggplot(aes(x = continent)) +
+  geom_bar()
+
+```
+]
+
+---
+
+## Histograma con `geom_histogram()`
+
+.pull-left[
+
+- Notáis algo similar?
+
+```{r, eval = FALSE}
+
+ggplot(data = gap_82,
+       mapping =  aes(x = gdpPercap)) + #<< 
+  geom_histogram() #<< 
+
+```
+]
+
+.pull-right[
+```{r, echo=FALSE, fig.height = 5, fig.width=6}
+
+ggplot(data = gap_82,
+       mapping =  aes(x = gdpPercap)) + #<< ) 
+  geom_histogram() 
 
 ```
 ]
 
 
+---
+class: center middle
+
+# Probando los mappings: breve demostración
+
+---
+class: inverse center middle
+
+# themes y facets: dos elementos más
+
+---
+
+# `themes` and co.
+
+.pull-left[
+- Los `themes` se pueden usar para cambiar la apariencia o estilo del gráfico.
+
+```{r, eval = FALSE}
+
+install.packages("hrbrthemes")
+library(hrbrthemes)
+
+ggplot(data = gap_82,
+       mapping =  aes(x = gdpPercap)) +  
+  geom_histogram() +
+  theme_ipsum() #<< 
+
+```
+
+]
+
+.pull-right[
+```{r, echo = FALSE, fig.height = 5, fig.width=6}
+
+ggplot(data = gap_82,
+       mapping =  aes(x = gdpPercap)) +  
+  geom_histogram() +
+  theme_ipsum()
+
+```
+]
+
+---
+
+# `themes` and co.
+
+.pull-left[
+- Los `facets` nos simplifican el proceso de visualizar diferencias entre categorías.
+
+```{r, eval = FALSE}
+
+ggplot(data = gap_82,
+       mapping =  aes(x = gdpPercap)) +  
+  geom_histogram() +
+  theme_minimal() + #<< 
+  facet_wrap(~continent) #<< 
+
+```
+
+]
+
+.pull-right[
+```{r, echo = FALSE, fig.height = 5, fig.width=7}
+
+ggplot(data = gap_82,
+       mapping =  aes(x = gdpPercap)) +  
+  geom_histogram() +
+  theme_minimal() +
+  facet_wrap(~continent)
+
+```
+]
 ---
 
 class: inverse center middle
 
-## Anatomy of a ggplot
+## Anatomía de un ggplot
 
 ---
 
@@ -215,23 +531,14 @@ gapminder %>%
   geom_point() +
   aes(color = continent) +
   aes(size = pop) +
-  theme_ipsum_tw() +
-  labs(title = "Income and life expectancy in 1982",
-       x = "GDP per capita",
-       y = "Life expectancy",
-       color = "Continent",
-       size = "Population") 
+  theme_ipsum() +
+  labs(title = "PIB y esperanza de vida en 1982",
+       subtitle = "Datos del proyecto Gapminder, creado por Hans Rosling",
+       x = "PIB per cápita",
+       y = "Esperanza de vida",
+       color = "Continente",
+       size = "Población") 
 
-
-```
-
----
-
-# Visualizar los coeficientes
-
-```{r}
-
-modelplot(all_models, coef_omit = 'Interc')
 
 ```
 
@@ -240,4 +547,6 @@ modelplot(all_models, coef_omit = 'Interc')
 
 class: inverse center middle
 
-# Thank you!
+# Preguntas?
+
+
