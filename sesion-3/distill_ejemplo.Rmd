@@ -30,6 +30,7 @@ Bienvenido a nuestro analisis de los pinguinos espanyoles. Empezaremos con un br
 ```{r}
 data(penguins)
 
+
 df_penguins <- penguins %>%
   mutate(treatment = as.numeric(rbernoulli(n = length(penguins$island))),
          body_mass_post = if_else(treatment == 1, body_mass_g + rnorm(n = length(penguins$island), 300, 50), body_mass_g - rnorm(n = length(penguins$island), 10, 5)),
