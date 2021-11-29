@@ -42,6 +42,17 @@ df_penguins <- penguins %>%
 Primero, queremos ver un resumen de nuestras variables numericas. Hay un total de **`r length(penguins$island)`** pinguinos en nuestra base de datos. La media de peso entre los pinguinos son **`r round(mean(penguins$body_mass_g, na.rm = TRUE), 1)` gramos**.
 
 ```{r}
+
+torgersen <- penguins %>%
+  filter(island == "Torgersen")
+```
+
+## Torgersen
+
+Hay **`r length(torgersen$island)` pinguinos** en `r unique(torgersen$island)`.
+
+
+```{r}
 library(modelsummary)
 
 
@@ -129,7 +140,7 @@ modelplot(mi_lista, coef_map = cm) +
 
 El paquete `gt` y `gtextras` nos permite hacer tablas bastante elegantes y faciles de configurar. Por ejemplo, imaginaos que queremos visualizar el numero de pinguinos
 
-```{r}
+```{r eval=FALSE, include=FALSE}
 
 library(gt)
 library(gtExtras)

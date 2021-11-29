@@ -155,7 +155,7 @@ ggplot(prov_sf) +
 
 ## Provincias animadas
 
-```{r, layout = 'l-body-outset'}
+```{r eval=FALSE, echo=TRUE}
 
 library(ggiraph)
 
